@@ -5372,6 +5372,7 @@ static Term io_node(Env e, u64 cid, Term a, Term b, int hot) {
 static Term io_str(Env e, const char* p, u64 n) {
   Term s    = term_pak(CID_SNIL, 0);
   Loc  hole = 0;
+  int  first = 1;
   u64  c = 0, need = 0, lo = 0x80, hi = 0xBF;
   for (u64 i = 0; i < n || need > 0; i += 1) {
     u64 b = i < n ? (uint8_t)p[i] : 0x100;
@@ -5396,6 +5397,12 @@ static Term io_str(Env e, const char* p, u64 n) {
       hi   = b == 0xED ? 0x9F : b == 0xF4 ? 0x8F : 0xBF;
       c    = b & (0x3F >> need);
       continue;
+    }
+    if (first) {
+      first = 0;
+      if (c == 0xFEFF) {
+        continue;
+      }
     }
     Loc  l = heap_alloc(e, 1);
     Term t = term_ctr(CID_SCON, l);
